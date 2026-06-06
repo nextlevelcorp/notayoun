@@ -33,18 +33,10 @@ workflows:
       - name: Patch plugin subprojects compileSdk to 36
         script: |
           PUB_CACHE="${HOME}/.pub-cache"
-          find "$PUB_CACHE/hosted/pub.dev" -name "build.gradle" | \
-            while IFS= read -r f; do
-              if grep -q "flutter\.compileSdkVersion" "$f"; then
-                sed -i '' \
-                  -e 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 36/g' \
-                  -e 's/compileSdk flutter\.compileSdkVersion/compileSdk 36/g' "$f" || \
-                sed -i \
-                  -e 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 36/g' \
-                  -e 's/compileSdk flutter\.compileSdkVersion/compileSdk 36/g' "$f"
-                echo "Patched: $f"
-              fi
-            done
+          # file_picker vb. eklentiler compileSdk'yi sabit kodlar (ör. 34);
+          # flutter_plugin_android_lifecycle 36 ister. 30–35 → 36.
+          find "$PUB_CACHE/hosted/pub.dev" -name build.gradle \
+            -exec perl -i -pe 's/(compileSdk(?:Version)?\s*=?\s*)3[0-5]\b/${1}36/g' {} +
       - name: Analyze
         script: |
           cd app
