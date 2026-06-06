@@ -1,0 +1,20 @@
+# Render Blueprint — NotaOyun OMR backend
+# Repo köküne konur; her push'ta otomatik yeniden deploy.
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: notaoyun-omr
+    runtime: docker
+    rootDir: omr_backend
+    dockerfilePath: ./Dockerfile
+    plan: free # oemer ağır; gerekirse 'starter'a yükselt
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: OMR_CACHE_DIR
+        value: /data/cache
+    disk:
+      name: omr-cache
+      mountPath: /data
+      sizeGB: 1

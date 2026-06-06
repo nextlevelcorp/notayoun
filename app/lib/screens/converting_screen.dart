@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../models/song.dart';
 import '../services/app_config.dart';
-import '../services/song_repository.dart';
 import '../theme/app_colors.dart';
 import '../theme/dimens.dart';
 import '../widgets/mascot.dart';
-import 'play_screen.dart';
+import 'correction_screen.dart';
 
 /// (3) Dönüştürülüyor ekranı — maskot + ilerleme.
 ///
@@ -43,11 +41,9 @@ class _ConvertingScreenState extends State<ConvertingScreen> {
       final Song song = await omr.convert(widget.sourcePath);
 
       if (!mounted) return;
-      await context.read<SongRepository>().addSong(song);
-
-      if (!mounted) return;
+      // Kaydetme, düzeltme ekranında onaylanınca yapılır.
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => PlayScreen(song: song)),
+        MaterialPageRoute<void>(builder: (_) => CorrectionScreen(song: song)),
       );
     } catch (e) {
       if (mounted) {

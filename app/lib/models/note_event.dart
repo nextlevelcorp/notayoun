@@ -33,6 +33,22 @@ class NoteEvent {
 
   double get endBeat => startBeat + durationBeats;
 
+  NoteEvent copyWith({
+    int? midi,
+    String? name,
+    double? startBeat,
+    double? durationBeats,
+    Hand? hand,
+  }) {
+    return NoteEvent(
+      midi: midi ?? this.midi,
+      name: name ?? this.name,
+      startBeat: startBeat ?? this.startBeat,
+      durationBeats: durationBeats ?? this.durationBeats,
+      hand: hand ?? this.hand,
+    );
+  }
+
   factory NoteEvent.fromJson(Map<String, dynamic> json) {
     return NoteEvent(
       midi: (json['midi'] as num).toInt(),

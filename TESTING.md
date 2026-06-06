@@ -42,12 +42,37 @@ flutter run           # bağlı cihaz/emülatörde çalıştır
 - **Codemagic** (`codemagic.yaml`): Android APK ve iOS IPA→TestFlight iş akışları.
   Gerçek cihaz testi için Codemagic build'i kullanılır.
 
-## Backend (Faz 2)
+## Faz 2 — İçe aktarma + OMR + cache nasıl test edilir
+
+### Uygulama tarafı (demo / mock)
+1. Kütüphane → **İçe Aktar** (FAB) → Fotoğraf/Galeri/PDF seç.
+2. **Dönüştürülüyor** ekranı → **Notaları Kontrol Et** (düzeltme) ekranı açılır.
+3. Bir notayı +/- ile yarım ses kaydır veya sil → **Onayla ve Çal**.
+4. Şarkı kütüphaneye **kalıcı** eklenir (uygulamayı kapatıp açınca durur).
+
+### Gerçek backend ile
+```bash
+flutter run --dart-define=OMR_BASE_URL=https://notaoyun-omr.onrender.com
+```
+URL tanımlıyken İçe Aktar gerçek OMR'yi çağırır; sonuç hem backend'de
+(hash cache) hem cihazda saklanır, bir daha çağrılmaz.
+
+## Backend (omr_backend)
 
 ```bash
 cd omr_backend
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 # POST /convert (multipart, alan adı: "file") → JSON note timeline
 curl -F "file=@ornek_nota.png" http://localhost:8000/convert
 ```
+
+Hafif birim testleri (oemer gerekmez):
+```bash
+cd omr_backend
+pip install fastapi "music21==9.1.*" pytest
+pytest -q
+```
+
+> İlk gerçek `/convert` çağrısı oemer modellerini indirir → yavaş olabilir.

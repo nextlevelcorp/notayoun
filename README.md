@@ -59,7 +59,7 @@ Tanımlı değilse uygulama otomatik olarak `MockOmrService`'e düşer (offline 
 
 - [x] **Faz 0** — İskelet + tema + CI
 - [x] **Faz 1** — Dikey dilim (mock veri ile oynanabilir demo)
-- [ ] **Faz 2** — İçe aktarma + gerçek OMR backend + yerel cache
+- [x] **Faz 2** — İçe aktarma + gerçek OMR backend + yerel cache + düzeltme ekranı
 - [ ] **Faz 3** — Oyunlaştırma + onboarding + freemium kapısı
 
 Test ayrıntıları için bkz. [`TESTING.md`](TESTING.md).

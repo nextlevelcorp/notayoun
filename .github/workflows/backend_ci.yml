@@ -1,0 +1,31 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ["**"]
+    paths: ["omr_backend/**", ".github/workflows/backend_ci.yml"]
+  pull_request:
+    branches: ["**"]
+    paths: ["omr_backend/**", ".github/workflows/backend_ci.yml"]
+
+jobs:
+  test:
+    name: Lint & test (hafif)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: omr_backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # oemer/tensorflow ağır olduğundan CI'da yalnızca hafif bağımlılıklar.
+      # Tam OMR derlemesi Render imajında doğrulanır.
+      - name: Install light deps
+        run: pip install fastapi "music21==9.1.*" pytest
+
+      - name: Run tests
+        run: pytest -q
