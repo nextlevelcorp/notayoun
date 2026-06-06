@@ -5,10 +5,13 @@ import 'package:notaoyun/screens/play_controller.dart';
 import 'package:notaoyun/services/audio_service.dart';
 
 /// Ses çalmayı kaydeden, asset yüklemeyen sahte AudioService.
+/// playNote doğrudan override edilir; backend dallanmasını bypass eder.
 class _FakeAudio extends AudioService {
   final List<int> played = [];
   @override
-  Future<void> init() async {}
+  Future<void> init() async {
+    // Backend init'i atla.
+  }
   @override
   Future<void> playNote(int midi) async => played.add(midi);
 }

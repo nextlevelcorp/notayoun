@@ -1,48 +1,38 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:soundpool/soundpool.dart';
+
+// soundpool web'i desteklemez; platforma göre koşullu import.
+import 'audio_service_mobile.dart'
+    if (dart.library.html) 'audio_service_web.dart' as impl;
 
 /// Örnek (sample) tabanlı düşük gecikmeli nota çalar.
 ///
-/// `assets/audio/note_<midi>.wav` örneklerini `soundpool` ile önceden yükler;
-/// oyun sırasında MIDI numarasına göre tetikler.
+/// Mobil: `soundpool` ile WAV örnekleri.
+/// Web: sessiz (görsel oynanış tam, ses devre dışı — ileride Web Audio API).
 class AudioService {
   AudioService();
 
-  static const int _lowMidi = 48; // C3 (üretilen ilk örnek)
-  static const int _highMidi = 79; // G5 (üretilen son örnek)
+  static const int _lowMidi = 48;
+  static const int _highMidi = 79;
 
-  Soundpool? _pool;
-  final Map<int, int> _soundIds = {}; // midi -> soundpool id
+  final impl.AudioBackend _backend = impl.AudioBackend();
   bool _ready = false;
   bool get isReady => _ready;
 
   /// Ses açık mı (ayarlardan kontrol edilir).
   bool enabled = true;
 
-  /// Tüm nota örneklerini belleğe yükler. Uygulama açılışında bir kez çağrılır.
   Future<void> init() async {
     if (_ready) return;
-    _pool = Soundpool.fromOptions(
-      options: const SoundpoolOptions(streamType: StreamType.music),
-    );
-    for (var midi = _lowMidi; midi <= _highMidi; midi++) {
-      try {
-        final data = await rootBundle.load('assets/audio/note_$midi.wav');
-        _soundIds[midi] = await _pool!.load(data);
-      } catch (e) {
-        // Örnek yoksa sessizce atla (görsel oynanış etkilenmez).
-        debugPrint('Ses örneği yüklenemedi: note_$midi.wav ($e)');
-      }
+    if (!kIsWeb) {
+      await _backend.init(_lowMidi, _highMidi, rootBundle);
     }
     _ready = true;
   }
 
-  /// Verilen MIDI notasını çalar. Aralık dışındaysa en yakın oktava kaydırır.
   Future<void> playNote(int midi) async {
-    final pool = _pool;
-    if (pool == null || !enabled) return;
-
+    if (!enabled) return;
+    if (kIsWeb) return; // Web Audio API Faz 4'te eklenecek.
     var m = midi;
     while (m < _lowMidi) {
       m += 12;
@@ -50,16 +40,11 @@ class AudioService {
     while (m > _highMidi) {
       m -= 12;
     }
-    final id = _soundIds[m];
-    if (id != null) {
-      await pool.play(id);
-    }
+    await _backend.playNote(m);
   }
 
   void dispose() {
-    _pool?.dispose();
-    _pool = null;
+    _backend.dispose();
     _ready = false;
-    _soundIds.clear();
   }
 }
