@@ -1,21 +1,20 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
-
-// soundpool web'i desteklemez; platforma göre koşullu import.
-import 'audio_service_mobile.dart'
-    if (dart.library.html) 'audio_service_web.dart' as impl;
 
 /// Örnek (sample) tabanlı düşük gecikmeli nota çalar.
 ///
-/// Mobil: `soundpool` ile WAV örnekleri.
-/// Web: sessiz (görsel oynanış tam, ses devre dışı — ileride Web Audio API).
+/// `assets/audio/note_<midi>.wav` örneklerini bir [AudioPlayer] havuzuyla
+/// çalar; eş zamanlı nota sesi için havuzdan döngüsel olarak player alır.
+/// Android / iOS / Web üçünde de çalışır (audioplayers).
 class AudioService {
   AudioService();
 
-  static const int _lowMidi = 48;
-  static const int _highMidi = 79;
+  static const int _lowMidi = 48; // C3
+  static const int _highMidi = 79; // G5
+  static const int _poolSize = 8; // eş zamanlı maksimum ses
 
-  final impl.AudioBackend _backend = impl.AudioBackend();
+  final List<AudioPlayer> _pool = [];
+  int _poolIndex = 0;
   bool _ready = false;
   bool get isReady => _ready;
 
@@ -24,15 +23,17 @@ class AudioService {
 
   Future<void> init() async {
     if (_ready) return;
-    if (!kIsWeb) {
-      await _backend.init(_lowMidi, _highMidi, rootBundle);
+    for (var i = 0; i < _poolSize; i++) {
+      final p = AudioPlayer();
+      await p.setReleaseMode(ReleaseMode.stop);
+      _pool.add(p);
     }
     _ready = true;
   }
 
+  /// Verilen MIDI notasını çalar. Aralık dışındaysa en yakın oktava kaydırır.
   Future<void> playNote(int midi) async {
-    if (!enabled) return;
-    if (kIsWeb) return; // Web Audio API Faz 4'te eklenecek.
+    if (!enabled || !_ready) return;
     var m = midi;
     while (m < _lowMidi) {
       m += 12;
@@ -40,11 +41,20 @@ class AudioService {
     while (m > _highMidi) {
       m -= 12;
     }
-    await _backend.playNote(m);
+    try {
+      final player = _pool[_poolIndex % _poolSize];
+      _poolIndex++;
+      await player.play(AssetSource('audio/note_$m.wav'));
+    } catch (e) {
+      debugPrint('Ses çalınamadı: note_$m.wav ($e)');
+    }
   }
 
   void dispose() {
-    _backend.dispose();
+    for (final p in _pool) {
+      p.dispose();
+    }
+    _pool.clear();
     _ready = false;
   }
 }
