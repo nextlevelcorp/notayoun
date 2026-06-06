@@ -3,7 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 // soundpool web'i desteklemez; platforma göre koşullu import.
 import 'audio_service_mobile.dart'
-    if (dart.library.html) 'audio_service_web.dart' as _impl;
+    if (dart.library.html) 'audio_service_web.dart' as impl;
 
 /// Örnek (sample) tabanlı düşük gecikmeli nota çalar.
 ///
@@ -15,7 +15,7 @@ class AudioService {
   static const int _lowMidi = 48;
   static const int _highMidi = 79;
 
-  final _impl.AudioBackend _backend = _impl.AudioBackend();
+  final impl.AudioBackend _backend = impl.AudioBackend();
   bool _ready = false;
   bool get isReady => _ready;
 
