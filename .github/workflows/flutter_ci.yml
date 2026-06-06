@@ -26,15 +26,19 @@ jobs:
       - name: Generate platform folders
         run: flutter create --platforms=android,ios --org com.example .
 
-      # Bazı eklentiler (flutter_plugin_android_lifecycle) compileSdk 36 ister;
-      # flutter create varsayılanı daha düşük olabildiğinden zorla yükselt.
-      - name: Bump Android compileSdk/targetSdk to 36
+      # Bazı eklentiler (flutter_plugin_android_lifecycle) compileSdk 36 ister.
+      # App modülünü sed ile, TÜM eklenti alt-projelerini (file_picker vb.)
+      # kök build.gradle.kts'e eklenen subprojects bloğuyla 36'ya yükselt.
+      - name: Force compileSdk/targetSdk 36 (app + all plugins)
         run: |
           f=android/app/build.gradle.kts
           sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f"
           sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f"
-          echo "--- build.gradle.kts (android bloğu) ---"
+          cat ../.github/ci/force_compile_sdk.gradle.kts >> android/build.gradle.kts
+          echo "--- android/app/build.gradle.kts (android bloğu) ---"
           grep -nE 'compileSdk|targetSdk|minSdk' "$f" || true
+          echo "--- android/build.gradle.kts (son satırlar) ---"
+          tail -25 android/build.gradle.kts || true
 
       - name: Install dependencies
         run: flutter pub get

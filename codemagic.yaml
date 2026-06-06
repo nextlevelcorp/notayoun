@@ -18,7 +18,7 @@ workflows:
         script: |
           cd app
           flutter create --platforms=android,ios --org com.example .
-      - name: Bump Android compileSdk/targetSdk to 36
+      - name: Force compileSdk/targetSdk 36 (app + all plugins)
         script: |
           cd app
           f=android/app/build.gradle.kts
@@ -26,6 +26,8 @@ workflows:
             sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f"
           sed -i '' 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f" || \
             sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f"
+          # Eklenti alt-projeleri (file_picker vb.) için compileSdk 36'yı zorla.
+          cat ../.github/ci/force_compile_sdk.gradle.kts >> android/build.gradle.kts
       - name: Get Flutter packages
         script: |
           cd app
