@@ -1,0 +1,10 @@
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+python-multipart==0.0.*
+music21==9.1.*
+# OMR motoru (MIT). TensorFlow/onnx bağımlılıklarını kendisi çeker — imaj büyüktür.
+oemer==0.1.7
+# PDF ilk sayfasını görsele çevirmek için
+PyMuPDF==1.24.*
+Pillow==10.*
+numpy<2.0

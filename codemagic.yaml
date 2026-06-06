@@ -1,0 +1,85 @@
+# Codemagic CI/CD — NotaOyun
+# Mac'siz iOS + Android derleme. Sırlar (Apple/Google anahtarları) Codemagic
+# ortam değişkenlerinde / gruplarında tutulur; repoya KONMAZ.
+# Docs: https://docs.codemagic.io/yaml/yaml-getting-started/
+
+workflows:
+  android-apk:
+    name: Android APK (test)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      vars:
+        # OMR backend URL'i build'e gömülür (tanımsızsa uygulama mock'a düşer)
+        OMR_BASE_URL: "https://notaoyun-omr.onrender.com"
+    scripts:
+      - name: Generate platform folders
+        script: |
+          cd app
+          flutter create --platforms=android,ios --org com.example .
+      - name: Get Flutter packages
+        script: |
+          cd app
+          flutter pub get
+      - name: Analyze
+        script: |
+          cd app
+          flutter analyze
+      - name: Test
+        script: |
+          cd app
+          flutter test
+      - name: Build APK
+        script: |
+          cd app
+          flutter build apk --release --dart-define=OMR_BASE_URL=$OMR_BASE_URL
+    artifacts:
+      - app/build/**/outputs/**/*.apk
+    publishing:
+      email:
+        recipients:
+          - utkucankumru@gmail.com  # placeholder — kendi e-postanı koy
+
+  ios-testflight:
+    name: iOS IPA → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+    integrations:
+      app_store_connect: codemagic  # App Store Connect API anahtarı (Codemagic'te tanımla)
+    environment:
+      flutter: stable
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.example.notaoyun  # placeholder — kendi bundle id'in
+      vars:
+        OMR_BASE_URL: "https://notaoyun-omr.onrender.com"
+    scripts:
+      - name: Generate platform folders
+        script: |
+          cd app
+          flutter create --platforms=android,ios --org com.example .
+      - name: Get Flutter packages
+        script: |
+          cd app
+          flutter pub get
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Analyze & test
+        script: |
+          cd app
+          flutter analyze
+          flutter test
+      - name: Build IPA
+        script: |
+          cd app
+          flutter build ipa --release \
+            --dart-define=OMR_BASE_URL=$OMR_BASE_URL \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - app/build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

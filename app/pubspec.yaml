@@ -1,0 +1,42 @@
+name: notaoyun
+description: "4-9 yaş çocuklar için düşen-notalı birlikte-çal müzik oyunu."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # Durum yönetimi
+  provider: ^6.1.2
+
+  # Tasarım fontları
+  google_fonts: ^6.2.1
+
+  # Ses (düşük gecikmeli örnek tetikleme)
+  soundpool: ^2.4.1
+
+  # İçe aktarma (Faz 2)
+  image_picker: ^1.1.2
+  file_picker: ^8.1.2
+
+  # Backend + yerel cache (Faz 2)
+  http: ^1.2.2
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/songs/
+    - assets/audio/
