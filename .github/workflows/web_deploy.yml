@@ -1,0 +1,49 @@
+name: Flutter Web → GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # elle tetikleme
+
+permissions:
+  contents: write # gh-pages dalına push için
+
+jobs:
+  build-and-deploy:
+    name: Build web & deploy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Platform iskeleti (web dahil) üret.
+      - name: Generate platform folders
+        run: flutter create --platforms=web,android,ios --org com.example .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Build web (base-href ile — repo adı /notayoun/)
+        run: |
+          flutter build web \
+            --release \
+            --base-href /notayoun/ \
+            --dart-define=OMR_BASE_URL=""
+
+      # gh-pages dalına deploy.
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: app/build/web
+          cname: "" # özel alan yok
