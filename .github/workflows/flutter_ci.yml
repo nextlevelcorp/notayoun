@@ -26,22 +26,32 @@ jobs:
       - name: Generate platform folders
         run: flutter create --platforms=android,ios --org com.example .
 
-      # Bazı eklentiler (flutter_plugin_android_lifecycle) compileSdk 36 ister.
-      # App modülünü sed ile, TÜM eklenti alt-projelerini (file_picker vb.)
-      # kök build.gradle.kts'e eklenen subprojects bloğuyla 36'ya yükselt.
-      - name: Force compileSdk/targetSdk 36 (app + all plugins)
+      # App modülü: flutter create varsayılanı compileSdkVersion 34 üretir.
+      - name: Patch app compileSdk/targetSdk to 36
         run: |
           f=android/app/build.gradle.kts
           sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f"
           sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f"
-          cat ../.github/ci/force_compile_sdk.gradle.kts >> android/build.gradle.kts
-          echo "--- android/app/build.gradle.kts (android bloğu) ---"
           grep -nE 'compileSdk|targetSdk|minSdk' "$f" || true
-          echo "--- android/build.gradle.kts (son satırlar) ---"
-          tail -25 android/build.gradle.kts || true
 
       - name: Install dependencies
         run: flutter pub get
+
+      # Eklenti alt-projeleri (file_picker vb.) de flutter.compileSdkVersion → 34
+      # kullanır; flutter_plugin_android_lifecycle 36 ister. Pub-cache'deki
+      # build.gradle dosyalarını yerinde yamalıyoruz (afterEvaluate Gradle hook'u
+      # zaten-değerlendirilmiş proje hatası verdiğinden burada sed daha güvenli).
+      - name: Patch plugin subprojects compileSdk to 36
+        run: |
+          find "$PUB_CACHE/hosted/pub.dev" -name "build.gradle" \
+            -exec grep -l "flutter\.compileSdkVersion" {} \; | \
+            xargs -r sed -i \
+              -e 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 36/g' \
+              -e 's/compileSdk flutter\.compileSdkVersion/compileSdk 36/g'
+          echo "Patched plugin gradle files:"
+          find "$PUB_CACHE/hosted/pub.dev" -name "build.gradle" \
+            -exec grep -l "compileSdkVersion 36\|compileSdk 36" {} \; 2>/dev/null | \
+            head -20 || echo "(none matched)"
 
       - name: Analyze
         run: flutter analyze

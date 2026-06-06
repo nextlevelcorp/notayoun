@@ -18,7 +18,7 @@ workflows:
         script: |
           cd app
           flutter create --platforms=android,ios --org com.example .
-      - name: Force compileSdk/targetSdk 36 (app + all plugins)
+      - name: Patch app compileSdk/targetSdk to 36
         script: |
           cd app
           f=android/app/build.gradle.kts
@@ -26,12 +26,25 @@ workflows:
             sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f"
           sed -i '' 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f" || \
             sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f"
-          # Eklenti alt-projeleri (file_picker vb.) için compileSdk 36'yı zorla.
-          cat ../.github/ci/force_compile_sdk.gradle.kts >> android/build.gradle.kts
       - name: Get Flutter packages
         script: |
           cd app
           flutter pub get
+      - name: Patch plugin subprojects compileSdk to 36
+        script: |
+          PUB_CACHE="${HOME}/.pub-cache"
+          find "$PUB_CACHE/hosted/pub.dev" -name "build.gradle" | \
+            while IFS= read -r f; do
+              if grep -q "flutter\.compileSdkVersion" "$f"; then
+                sed -i '' \
+                  -e 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 36/g' \
+                  -e 's/compileSdk flutter\.compileSdkVersion/compileSdk 36/g' "$f" || \
+                sed -i \
+                  -e 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 36/g' \
+                  -e 's/compileSdk flutter\.compileSdkVersion/compileSdk 36/g' "$f"
+                echo "Patched: $f"
+              fi
+            done
       - name: Analyze
         script: |
           cd app
