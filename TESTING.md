@@ -76,3 +76,16 @@ pytest -q
 ```
 
 > İlk gerçek `/convert` çağrısı oemer modellerini indirir → yavaş olabilir.
+
+## Faz 3 — Oyunlaştırma / onboarding / freemium nasıl test edilir
+
+1. **Onboarding**: İlk açılışta 3 sayfalık tanıtım gelir (uygulama verisini
+   silersen tekrar görünür). "Başla" → Kütüphane.
+2. **Streak & rozetler**: Bir şarkıyı bitir → Ödül ekranında konfeti, yıldız,
+   "🔥 1 günlük seri" ve **İlk Şarkı** rozeti. Kütüphane başlığında seri çipi,
+   sağ üstte 🏆 **Başarılar** ekranı.
+3. **Ayarlar** (⚙): Ses aç/kapa anında etkili; "Ebeveyn Alanı" çarpma sorusu sorar.
+4. **Freemium**: 1 ayda ${freeConversionsPerMonth} (varsayılan 5) dönüştürmeden
+   sonra İçe Aktar **Paywall**'a yönlenir; "Premium'a Geç" ebeveyn kapısı ister.
+
+Birim testi: `test/progress_service_test.dart` (streak, rozetler, aylık limit).

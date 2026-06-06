@@ -17,6 +17,9 @@ class AudioService {
   bool _ready = false;
   bool get isReady => _ready;
 
+  /// Ses açık mı (ayarlardan kontrol edilir).
+  bool enabled = true;
+
   /// Tüm nota örneklerini belleğe yükler. Uygulama açılışında bir kez çağrılır.
   Future<void> init() async {
     if (_ready) return;
@@ -38,7 +41,7 @@ class AudioService {
   /// Verilen MIDI notasını çalar. Aralık dışındaysa en yakın oktava kaydırır.
   Future<void> playNote(int midi) async {
     final pool = _pool;
-    if (pool == null) return;
+    if (pool == null || !enabled) return;
 
     var m = midi;
     while (m < _lowMidi) {

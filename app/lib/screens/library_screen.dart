@@ -2,16 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/song.dart';
+import '../services/progress_service.dart';
 import '../services/song_repository.dart';
 import '../theme/app_colors.dart';
 import '../theme/dimens.dart';
 import '../widgets/mascot.dart';
+import 'badges_screen.dart';
 import 'import_screen.dart';
+import 'paywall_screen.dart';
 import 'play_screen.dart';
+import 'settings_screen.dart';
 
 /// (1) Ana / kütüphane ekranı — cihazdaki şarkıları listeler.
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
+
+  void _onImport(BuildContext context) {
+    final progress = context.read<ProgressService>();
+    // Freemium kapısı: aylık ücretsiz dönüştürme hakkı bittiyse paywall.
+    final target = progress.canConvert
+        ? const ImportScreen()
+        : const PaywallScreen();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => target),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +64,7 @@ class LibraryScreen extends StatelessWidget {
               ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const ImportScreen()),
-        ),
+        onPressed: () => _onImport(context),
         icon: const Icon(Icons.add_a_photo_rounded),
         label: const Text('İçe Aktar'),
       ),
@@ -59,6 +72,7 @@ class LibraryScreen extends StatelessWidget {
   }
 
   Widget _header(BuildContext context) {
+    final streak = context.watch<ProgressService>().streakCount;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.base,
@@ -66,21 +80,57 @@ class LibraryScreen extends StatelessWidget {
         AppSpacing.base,
         AppSpacing.lg,
       ),
-      child: Row(
+      child: Column(
         children: [
-          const Mascot(size: 64, mood: MascotMood.wave),
-          const SizedBox(width: AppSpacing.base),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Merhaba! 👋',
-                    style: Theme.of(context).textTheme.bodyMedium),
-                Text('Şarkı Kütüphanesi',
-                    style: Theme.of(context).textTheme.displayMedium),
-              ],
-            ),
+          Row(
+            children: [
+              const Mascot(size: 64, mood: MascotMood.wave),
+              const SizedBox(width: AppSpacing.base),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Merhaba! 👋',
+                        style: Theme.of(context).textTheme.bodyMedium),
+                    Text('Şarkı Kütüphanesi',
+                        style: Theme.of(context).textTheme.displayMedium),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Başarılar',
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const BadgesScreen()),
+                ),
+                icon: const Icon(Icons.emoji_events_rounded),
+              ),
+              IconButton(
+                tooltip: 'Ayarlar',
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                      builder: (_) => const SettingsScreen()),
+                ),
+                icon: const Icon(Icons.settings_rounded),
+              ),
+            ],
           ),
+          if (streak > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: NotaOyunColors.of(context).goldDim,
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                  ),
+                  child: Text('🔥 $streak günlük seri',
+                      style: Theme.of(context).textTheme.labelLarge),
+                ),
+              ),
+            ),
         ],
       ),
     );

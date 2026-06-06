@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/song.dart';
 import '../services/app_config.dart';
+import '../services/progress_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/dimens.dart';
 import '../widgets/mascot.dart';
@@ -39,6 +41,10 @@ class _ConvertingScreenState extends State<ConvertingScreen> {
             : 'Örnek şarkı hazırlanıyor…');
       }
       final Song song = await omr.convert(widget.sourcePath);
+
+      if (!mounted) return;
+      // Freemium sayacı: başarılı dönüştürmeyi kaydet.
+      await context.read<ProgressService>().recordConversion();
 
       if (!mounted) return;
       // Kaydetme, düzeltme ekranında onaylanınca yapılır.

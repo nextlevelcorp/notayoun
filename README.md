@@ -60,6 +60,14 @@ Tanımlı değilse uygulama otomatik olarak `MockOmrService`'e düşer (offline 
 - [x] **Faz 0** — İskelet + tema + CI
 - [x] **Faz 1** — Dikey dilim (mock veri ile oynanabilir demo)
 - [x] **Faz 2** — İçe aktarma + gerçek OMR backend + yerel cache + düzeltme ekranı
-- [ ] **Faz 3** — Oyunlaştırma + onboarding + freemium kapısı
+- [x] **Faz 3** — Oyunlaştırma + onboarding + ayarlar + freemium/ebeveyn kapısı
+
+## Çocuk güvenliği (4–9 yaş)
+
+- **Reklam yok, izleme yok, analitik yok.** Hiçbir kişisel veri toplanmaz/gönderilmez.
+- Tüm ilerleme (seri, rozetler, ayarlar) yalnızca cihazda (`shared_preferences`).
+- Satın alma / dış bağlantı / ebeveyn alanı **ebeveyn kapısı** (çarpma sorusu) arkasında.
+- Çalma tamamen **çevrimdışı**; OMR yalnızca içe aktarma anında, parça başına bir kez.
+- Hedef: Google Play **Designed for Families** / App Store **Kids Category** uyumu.
 
 Test ayrıntıları için bkz. [`TESTING.md`](TESTING.md).
