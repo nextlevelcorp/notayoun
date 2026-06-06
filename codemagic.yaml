@@ -18,6 +18,14 @@ workflows:
         script: |
           cd app
           flutter create --platforms=android,ios --org com.example .
+      - name: Bump Android compileSdk/targetSdk to 36
+        script: |
+          cd app
+          f=android/app/build.gradle.kts
+          sed -i '' 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f" || \
+            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f"
+          sed -i '' 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f" || \
+            sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f"
       - name: Get Flutter packages
         script: |
           cd app
