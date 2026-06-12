@@ -74,9 +74,10 @@ void main() {
     test('callback: doğru ve yanlış tetiklenir', () {
       var correct = 0;
       var wrong = 0;
-      final c = PlayController(song: _song(), audio: _FakeAudio(), waitMode: true)
-        ..onCorrectHit = () => correct++
-        ..onWrongHit = () => wrong++;
+      final c =
+          PlayController(song: _song(), audio: _FakeAudio(), waitMode: true);
+      c.onCorrectHit = () => correct++;
+      c.onWrongHit = () => wrong++;
       c.play();
       c.onTick(const Duration(milliseconds: 100));
       c.notePlayed(99); // yanlış
