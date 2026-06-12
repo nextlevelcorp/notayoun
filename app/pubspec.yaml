@@ -21,6 +21,10 @@ dependencies:
   # Ses (düşük gecikmeli örnek tetikleme — Android/iOS/Web destekli)
   audioplayers: ^6.1.0
 
+  # Mikrofon PCM akışı (yalnızca mobil/masaüstü; web'de no-op pitch service).
+  # Pitch detection saf-Dart yazıldı, ek bağımlılık yok.
+  record: ^5.2.1
+
   # İçe aktarma (Faz 2)
   image_picker: ^1.1.2
   file_picker: ^8.1.2

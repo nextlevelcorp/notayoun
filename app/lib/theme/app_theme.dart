@@ -3,10 +3,20 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 import 'dimens.dart';
+import 'theme_variants.dart';
 
 /// NotaOyun teması. FLUTTER_TOKENS.md bölüm 2 & 8.
-ThemeData buildNotaOyunTheme() {
-  const cs = kNotaOyunColorScheme;
+///
+/// [variant] verilirse ana renkler ve oyun arka planı ona göre değişir
+/// (kişiselleştirme); verilmezse klasik tema kullanılır.
+ThemeData buildNotaOyunTheme([ThemeVariant? variant]) {
+  final cs = variant == null
+      ? kNotaOyunColorScheme
+      : kNotaOyunColorScheme.copyWith(
+          primary: variant.primary,
+          secondary: variant.secondary,
+          tertiary: variant.tertiary,
+        );
   final onBg = cs.onSurface;
 
   final textTheme = TextTheme(
@@ -93,6 +103,13 @@ ThemeData buildNotaOyunTheme() {
       centerTitle: false,
       titleTextStyle: textTheme.titleLarge,
     ),
-    extensions: const [NotaOyunColors()],
+    extensions: [
+      variant == null
+          ? const NotaOyunColors()
+          : const NotaOyunColors().copyWith(
+              gameBg: variant.gameBg,
+              gameSurface: variant.gameSurface,
+            ),
+    ],
   );
 }

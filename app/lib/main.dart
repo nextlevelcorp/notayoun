@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,9 +9,17 @@ import 'services/audio_service.dart';
 import 'services/progress_service.dart';
 import 'services/song_repository.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_variants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Hem dikey hem yatay oyna (yatay mod düşen-nota ekranı için geniş klavye).
+  await SystemChrome.setPreferredOrientations(const [
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
 
   final prefs = await SharedPreferences.getInstance();
   final progress = ProgressService(prefs);
@@ -49,13 +58,16 @@ class NotaOyunApp extends StatelessWidget {
         ChangeNotifierProvider<ProgressService>.value(value: progress),
         Provider<AudioService>.value(value: audio),
       ],
-      child: MaterialApp(
-        title: 'NotaOyun',
-        debugShowCheckedModeBanner: false,
-        theme: buildNotaOyunTheme(),
-        home: progress.seenOnboarding
-            ? const LibraryScreen()
-            : const OnboardingScreen(),
+      // Seçili tema değişince canlı uygula.
+      child: Consumer<ProgressService>(
+        builder: (context, p, _) => MaterialApp(
+          title: 'NotaOyun',
+          debugShowCheckedModeBanner: false,
+          theme: buildNotaOyunTheme(Customizations.themeById(p.themeId)),
+          home: p.seenOnboarding
+              ? const LibraryScreen()
+              : const OnboardingScreen(),
+        ),
       ),
     );
   }

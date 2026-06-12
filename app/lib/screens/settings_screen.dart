@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/note_naming.dart';
 import '../services/progress_service.dart';
 import '../theme/dimens.dart';
 import '../widgets/parental_gate.dart';
+import 'customization_screen.dart';
 
 /// Ayarlar ekranı. Yetişkin işlemleri (ör. "uygulamayı değerlendir" gibi dış
 /// bağlantılar) ebeveyn kapısı arkasındadır.
@@ -27,12 +30,80 @@ class SettingsScreen extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           children: [
+            _sectionHeader(context, 'Oynanış'),
+            SwitchListTile(
+              secondary: const Icon(Icons.pan_tool_rounded),
+              title: const Text('Bekleme modu'),
+              subtitle: const Text(
+                  'Doğru nota çalınana kadar bekle (öğretici). Kapalıyken akıcı çalar.'),
+              value: progress.waitMode,
+              onChanged: progress.setWaitMode,
+            ),
+            ListTile(
+              leading: const Icon(Icons.abc_rounded),
+              title: const Text('Nota adı gösterimi'),
+              subtitle: Wrap(
+                spacing: AppSpacing.sm,
+                children: [
+                  for (final s in NoteNameStyle.values)
+                    ChoiceChip(
+                      label: Text(s.label),
+                      selected: progress.noteNameStyle == s,
+                      onSelected: (_) => progress.setNoteNameStyle(s),
+                    ),
+                ],
+              ),
+            ),
+            if (!kIsWeb)
+              SwitchListTile(
+                secondary: const Icon(Icons.mic_rounded),
+                title: const Text('Mikrofonla dinle'),
+                subtitle: const Text(
+                    'Gerçek piyano sesini dinleyip yönlendirir (mobil).'),
+                value: progress.micEnabled,
+                onChanged: progress.setMicEnabled,
+              ),
+            const Divider(),
+            _sectionHeader(context, 'Ses & Geri Bildirim'),
             SwitchListTile(
               secondary: const Icon(Icons.volume_up_rounded),
               title: const Text('Ses'),
               subtitle: const Text('Nota seslerini çal'),
               value: progress.soundEnabled,
-              onChanged: (v) => progress.setSoundEnabled(v),
+              onChanged: progress.setSoundEnabled,
+            ),
+            SwitchListTile(
+              secondary: const Icon(Icons.av_timer_rounded),
+              title: const Text('Metronom'),
+              subtitle: const Text('Her vuruşta tık sesi'),
+              value: progress.metronomeEnabled,
+              onChanged: progress.setMetronomeEnabled,
+            ),
+            SwitchListTile(
+              secondary: const Icon(Icons.timer_3_select_rounded),
+              title: const Text('Başlangıç sayımı'),
+              subtitle: const Text('Çalmadan önce 3·2·1 geri sayım'),
+              value: progress.countInEnabled,
+              onChanged: progress.setCountInEnabled,
+            ),
+            SwitchListTile(
+              secondary: const Icon(Icons.vibration_rounded),
+              title: const Text('Titreşim (haptik)'),
+              subtitle: const Text('Doğru/yanlış çalışta hafif titreşim'),
+              value: progress.hapticsEnabled,
+              onChanged: progress.setHapticsEnabled,
+            ),
+            const Divider(),
+            _sectionHeader(context, 'Görünüm'),
+            ListTile(
+              leading: const Icon(Icons.palette_rounded),
+              title: const Text('Kişiselleştir'),
+              subtitle: const Text('Renk teması ve maskot'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                    builder: (_) => const CustomizationScreen()),
+              ),
             ),
             const Divider(),
             ListTile(
@@ -48,7 +119,6 @@ class SettingsScreen extends StatelessWidget {
               trailing: const Icon(Icons.lock_outline_rounded),
               onTap: () => _parentArea(context),
             ),
-            const Divider(),
             const Padding(
               padding: EdgeInsets.all(AppSpacing.base),
               child: _SafetyNote(),
@@ -64,6 +134,12 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _sectionHeader(BuildContext context, String text) => Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.base, AppSpacing.md, AppSpacing.base, AppSpacing.xs),
+        child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+      );
 }
 
 class _SafetyNote extends StatelessWidget {
@@ -84,7 +160,8 @@ class _SafetyNote extends StatelessWidget {
           Expanded(
             child: Text(
               'Çocuk güvenliği: Reklam yok, izleme yok. Hiçbir kişisel veri '
-              'toplanmaz veya gönderilmez. Çalma tamamen çevrimdışıdır.',
+              'toplanmaz veya gönderilmez. Mikrofon yalnızca cihazda nota '
+              'algılamak için kullanılır; ses kaydedilmez veya gönderilmez.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),

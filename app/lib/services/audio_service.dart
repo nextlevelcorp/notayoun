@@ -18,6 +18,9 @@ class AudioService {
   bool _ready = false;
   bool get isReady => _ready;
 
+  /// Metronom/sayım tıkı için ayrı oynatıcı (nota havuzunu meşgul etmez).
+  final AudioPlayer _tickPlayer = AudioPlayer();
+
   /// Ses açık mı (ayarlardan kontrol edilir).
   bool enabled = true;
 
@@ -28,7 +31,20 @@ class AudioService {
       await p.setReleaseMode(ReleaseMode.stop);
       _pool.add(p);
     }
+    await _tickPlayer.setReleaseMode(ReleaseMode.stop);
     _ready = true;
+  }
+
+  /// Metronom/sayım tıkı. [strong] true ise vurgulu (ölçü başı) tık çalar.
+  Future<void> playTick({bool strong = false}) async {
+    if (!enabled || !_ready) return;
+    try {
+      await _tickPlayer.play(
+        AssetSource(strong ? 'audio/tick_hi.wav' : 'audio/tick_lo.wav'),
+      );
+    } catch (e) {
+      debugPrint('Tık çalınamadı ($e)');
+    }
   }
 
   /// Verilen MIDI notasını çalar. Aralık dışındaysa en yakın oktava kaydırır.
@@ -55,6 +71,7 @@ class AudioService {
       p.dispose();
     }
     _pool.clear();
+    _tickPlayer.dispose();
     _ready = false;
   }
 }
