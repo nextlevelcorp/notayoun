@@ -26,8 +26,30 @@ jobs:
       - name: Generate platform folders
         run: flutter create --platforms=android,ios --org com.example .
 
+      # App modülü: flutter create varsayılanı compileSdkVersion 34 üretir.
+      - name: Patch app compileSdk/targetSdk/minSdk
+        run: |
+          f=android/app/build.gradle.kts
+          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f"
+          sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f"
+          # record/audioplayers gibi eklentiler minSdk 23 ister.
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 23/' "$f"
+          grep -nE 'compileSdk|targetSdk|minSdk' "$f" || true
+
       - name: Install dependencies
         run: flutter pub get
+
+      # Eklenti alt-projeleri kendi compileSdk'sini sabit kodlayabiliyor
+      # (ör. file_picker 8.3.7 → `compileSdk 34`). flutter_plugin_android_lifecycle
+      # tüketicilerden 36 ister. Pub-cache'deki build.gradle dosyalarında
+      # compileSdk/compileSdkVersion 30–35 değerlerini 36'ya yükselt.
+      - name: Patch plugin subprojects compileSdk to 36
+        run: |
+          find "$PUB_CACHE/hosted/pub.dev" -name build.gradle \
+            -exec perl -i -pe 's/(compileSdk(?:Version)?\s*=?\s*)3[0-5]\b/${1}36/g' {} +
+          echo "--- compileSdk satırları (eklentiler) ---"
+          grep -rnE 'compileSdk' "$PUB_CACHE/hosted/pub.dev"/*/android/build.gradle 2>/dev/null \
+            | grep -v 'flutter\.compileSdkVersion' | head -30 || true
 
       - name: Analyze
         run: flutter analyze

@@ -18,10 +18,27 @@ workflows:
         script: |
           cd app
           flutter create --platforms=android,ios --org com.example .
+      - name: Patch app compileSdk/targetSdk/minSdk
+        script: |
+          cd app
+          f=android/app/build.gradle.kts
+          sed -i '' 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f" || \
+            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$f"
+          sed -i '' 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f" || \
+            sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' "$f"
+          sed -i '' 's/minSdk = flutter.minSdkVersion/minSdk = 23/' "$f" || \
+            sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 23/' "$f"
       - name: Get Flutter packages
         script: |
           cd app
           flutter pub get
+      - name: Patch plugin subprojects compileSdk to 36
+        script: |
+          PUB_CACHE="${HOME}/.pub-cache"
+          # file_picker vb. eklentiler compileSdk'yi sabit kodlar (ör. 34);
+          # flutter_plugin_android_lifecycle 36 ister. 30–35 → 36.
+          find "$PUB_CACHE/hosted/pub.dev" -name build.gradle \
+            -exec perl -i -pe 's/(compileSdk(?:Version)?\s*=?\s*)3[0-5]\b/${1}36/g' {} +
       - name: Analyze
         script: |
           cd app
@@ -59,6 +76,16 @@ workflows:
         script: |
           cd app
           flutter create --platforms=android,ios --org com.example .
+      - name: Add microphone usage description (Info.plist)
+        script: |
+          cd app
+          plist=ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c \
+            "Add :NSMicrophoneUsageDescription string 'Çaldığın notaları dinleyip oyunda yönlendirmek için mikrofon kullanılır. Ses kaydedilmez.'" \
+            "$plist" || \
+          /usr/libexec/PlistBuddy -c \
+            "Set :NSMicrophoneUsageDescription 'Çaldığın notaları dinleyip oyunda yönlendirmek için mikrofon kullanılır. Ses kaydedilmez.'" \
+            "$plist"
       - name: Get Flutter packages
         script: |
           cd app

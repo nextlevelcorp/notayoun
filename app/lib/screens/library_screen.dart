@@ -6,6 +6,7 @@ import '../services/progress_service.dart';
 import '../services/song_repository.dart';
 import '../theme/app_colors.dart';
 import '../theme/dimens.dart';
+import '../theme/theme_variants.dart';
 import '../widgets/mascot.dart';
 import 'badges_screen.dart';
 import 'import_screen.dart';
@@ -72,7 +73,9 @@ class LibraryScreen extends StatelessWidget {
   }
 
   Widget _header(BuildContext context) {
-    final streak = context.watch<ProgressService>().streakCount;
+    final progress = context.watch<ProgressService>();
+    final streak = progress.streakCount;
+    final costume = Customizations.mascotById(progress.mascotId);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.base,
@@ -84,7 +87,7 @@ class LibraryScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Mascot(size: 64, mood: MascotMood.wave),
+              Mascot(size: 64, mood: MascotMood.wave, costume: costume),
               const SizedBox(width: AppSpacing.base),
               Expanded(
                 child: Column(

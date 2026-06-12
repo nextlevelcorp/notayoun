@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/note_event.dart';
+import '../models/note_naming.dart';
 import '../theme/app_colors.dart';
 
 /// Düşen notaları çizen [CustomPainter].
@@ -14,11 +15,17 @@ class FallingNotesPainter extends CustomPainter {
     required this.lookAheadBeats,
     required this.laneOf,
     required this.laneCount,
+    this.nameStyle = NoteNameStyle.solfej,
+    this.waiting = false,
   });
 
   final List<NoteEvent> notes;
   final double currentBeat;
   final double lookAheadBeats;
+  final NoteNameStyle nameStyle;
+
+  /// Bekleme modunda çizgide donulduğunu vurgular.
+  final bool waiting;
 
   /// MIDI → şerit (lane) indeksi.
   final int Function(int midi) laneOf;
@@ -39,10 +46,12 @@ class FallingNotesPainter extends CustomPainter {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), dividerPaint);
     }
 
-    // Vuruş çizgisi.
+    // Vuruş çizgisi (bekleme modunda altın renkli ve kalın → "şimdi çal").
     final hitPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.65)
-      ..strokeWidth = 3;
+      ..color = waiting
+          ? const Color(0xFFF5A623)
+          : Colors.white.withValues(alpha: 0.65)
+      ..strokeWidth = waiting ? 5 : 3;
     canvas.drawLine(
       Offset(0, hitLineY - 1.5),
       Offset(size.width, hitLineY - 1.5),
@@ -88,11 +97,12 @@ class FallingNotesPainter extends CustomPainter {
         highlight,
       );
 
-      // Nota adı (yer varsa).
-      if (noteHeight > 22) {
+      // Nota adı (yer varsa ve gösterim açıksa).
+      final label = NoteNaming.forStyle(note.midi, nameStyle);
+      if (noteHeight > 22 && label.isNotEmpty) {
         final tp = TextPainter(
           text: TextSpan(
-            text: note.name,
+            text: label,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 13,
@@ -116,5 +126,7 @@ class FallingNotesPainter extends CustomPainter {
   bool shouldRepaint(covariant FallingNotesPainter old) =>
       old.currentBeat != currentBeat ||
       old.notes != notes ||
-      old.laneCount != laneCount;
+      old.laneCount != laneCount ||
+      old.nameStyle != nameStyle ||
+      old.waiting != waiting;
 }

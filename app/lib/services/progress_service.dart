@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/badge.dart';
+import '../models/note_naming.dart';
 
 /// Oyunlaştırma + ayarlar + freemium durumunu cihazda saklayan servis.
 ///
@@ -25,9 +26,43 @@ class ProgressService extends ChangeNotifier {
   static const _kConvMonth = 'conv_month';
   static const _kConvCount = 'conv_count';
   static const _kTotalConv = 'total_conversions';
+  // Oynanış / arayüz ayarları
+  static const _kWaitMode = 'wait_mode';
+  static const _kNoteNames = 'note_name_style';
+  static const _kHaptics = 'haptics_enabled';
+  static const _kMetronome = 'metronome_enabled';
+  static const _kCountIn = 'count_in_enabled';
+  static const _kMic = 'mic_enabled';
+  static const _kThemeId = 'theme_id';
+  static const _kMascotId = 'mascot_id';
 
   bool get seenOnboarding => _prefs.getBool(_kSeenOnboarding) ?? false;
   bool get soundEnabled => _prefs.getBool(_kSoundEnabled) ?? true;
+
+  /// "Bekleme modu": doğru nota çalınana kadar akış durur (varsayılan açık).
+  bool get waitMode => _prefs.getBool(_kWaitMode) ?? true;
+
+  /// Düşen notalar ve tuşlarda nota adı gösterimi.
+  NoteNameStyle get noteNameStyle =>
+      NoteNameStyleX.fromStorage(_prefs.getString(_kNoteNames));
+
+  /// Doğru/yanlış çalışta hafif titreşim.
+  bool get hapticsEnabled => _prefs.getBool(_kHaptics) ?? true;
+
+  /// Çalarken her vuruşta metronom tıkı.
+  bool get metronomeEnabled => _prefs.getBool(_kMetronome) ?? false;
+
+  /// Başlamadan önce 3·2·1 geri sayım.
+  bool get countInEnabled => _prefs.getBool(_kCountIn) ?? true;
+
+  /// Mikrofonla nota dinleme (yalnızca destekleyen platformlarda).
+  bool get micEnabled => _prefs.getBool(_kMic) ?? true;
+
+  /// Seçili renk teması kimliği.
+  String get themeId => _prefs.getString(_kThemeId) ?? 'classic';
+
+  /// Seçili maskot kostümü kimliği.
+  String get mascotId => _prefs.getString(_kMascotId) ?? 'classic';
   int get streakCount => _prefs.getInt(_kStreak) ?? 0;
   Set<String> get completedSongIds =>
       (_prefs.getStringList(_kCompleted) ?? const []).toSet();
@@ -52,6 +87,46 @@ class ProgressService extends ChangeNotifier {
 
   Future<void> setSoundEnabled(bool value) async {
     await _prefs.setBool(_kSoundEnabled, value);
+    notifyListeners();
+  }
+
+  Future<void> setWaitMode(bool value) async {
+    await _prefs.setBool(_kWaitMode, value);
+    notifyListeners();
+  }
+
+  Future<void> setNoteNameStyle(NoteNameStyle value) async {
+    await _prefs.setString(_kNoteNames, value.storageKey);
+    notifyListeners();
+  }
+
+  Future<void> setHapticsEnabled(bool value) async {
+    await _prefs.setBool(_kHaptics, value);
+    notifyListeners();
+  }
+
+  Future<void> setMetronomeEnabled(bool value) async {
+    await _prefs.setBool(_kMetronome, value);
+    notifyListeners();
+  }
+
+  Future<void> setCountInEnabled(bool value) async {
+    await _prefs.setBool(_kCountIn, value);
+    notifyListeners();
+  }
+
+  Future<void> setMicEnabled(bool value) async {
+    await _prefs.setBool(_kMic, value);
+    notifyListeners();
+  }
+
+  Future<void> setThemeId(String value) async {
+    await _prefs.setString(_kThemeId, value);
+    notifyListeners();
+  }
+
+  Future<void> setMascotId(String value) async {
+    await _prefs.setString(_kMascotId, value);
     notifyListeners();
   }
 
