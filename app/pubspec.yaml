@@ -23,7 +23,8 @@ dependencies:
 
   # Mikrofon PCM akışı (yalnızca mobil/masaüstü; web'de no-op pitch service).
   # Pitch detection saf-Dart yazıldı, ek bağımlılık yok.
-  record: ^5.2.1
+  # Not: 5.x, record_linux/platform_interface sürüm kayması yüzünden derlenmiyor.
+  record: ^7.1.0
 
   # İçe aktarma (Faz 2)
   image_picker: ^1.1.2
