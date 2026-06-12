@@ -19,7 +19,9 @@ class AudioService {
   bool get isReady => _ready;
 
   /// Metronom/sayım tıkı için ayrı oynatıcı (nota havuzunu meşgul etmez).
-  final AudioPlayer _tickPlayer = AudioPlayer();
+  /// [init] içinde oluşturulur; testlerde platform kanalı gerektirmesin diye
+  /// alan başlatıcısında değil.
+  AudioPlayer? _tickPlayer;
 
   /// Ses açık mı (ayarlardan kontrol edilir).
   bool enabled = true;
@@ -31,7 +33,9 @@ class AudioService {
       await p.setReleaseMode(ReleaseMode.stop);
       _pool.add(p);
     }
-    await _tickPlayer.setReleaseMode(ReleaseMode.stop);
+    final tick = AudioPlayer();
+    await tick.setReleaseMode(ReleaseMode.stop);
+    _tickPlayer = tick;
     _ready = true;
   }
 
@@ -39,7 +43,7 @@ class AudioService {
   Future<void> playTick({bool strong = false}) async {
     if (!enabled || !_ready) return;
     try {
-      await _tickPlayer.play(
+      await _tickPlayer?.play(
         AssetSource(strong ? 'audio/tick_hi.wav' : 'audio/tick_lo.wav'),
       );
     } catch (e) {
@@ -71,7 +75,8 @@ class AudioService {
       p.dispose();
     }
     _pool.clear();
-    _tickPlayer.dispose();
+    _tickPlayer?.dispose();
+    _tickPlayer = null;
     _ready = false;
   }
 }
